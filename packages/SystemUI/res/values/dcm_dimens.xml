@@ -98,4 +98,7 @@
     <!-- Heads up -->
     <dimen name="heads_up_bottom_gap">5dp</dimen>
 
+    <!-- Network stats -->
+    <dimen name="network_stats_text_size">9dp</dimen>
+
 </resources>
