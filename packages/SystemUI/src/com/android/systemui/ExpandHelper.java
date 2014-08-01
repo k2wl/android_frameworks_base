@@ -76,7 +76,7 @@ public class ExpandHelper implements Gefingerpoken, OnClickListener {
     private int mExpansionStyle = NONE;
     private boolean mWatchingForPull;
     private boolean mHasPopped;
-    private boolean mForcedOneFinger = false;
+    private boolean mForcedOneFinger;
     private View mEventSource;
     private View mCurrView;
     private View mCurrViewTopGlow;
@@ -274,7 +274,7 @@ public class ExpandHelper implements Gefingerpoken, OnClickListener {
 
         if (v == null) {
             if (DEBUG) Log.d(TAG, "isinside null subject");
-            return false;
+            return true;
         }
         if (mEventSource != null) {
             int[] location = new int[2];
@@ -303,6 +303,10 @@ public class ExpandHelper implements Gefingerpoken, OnClickListener {
 
     public void setScrollView(View scrollView) {
         mScrollView = scrollView;
+    }
+
+    public void setForceOneFinger(boolean forceOneFinger) {
+        mForcedOneFinger = forceOneFinger;
     }
 
     private float calculateGlow(float target, float actual) {
@@ -336,10 +340,6 @@ public class ExpandHelper implements Gefingerpoken, OnClickListener {
                 }
             }
         }
-    }
-
-    public void setForceOneFinger(boolean forceOneFinger) {
-        mForcedOneFinger = forceOneFinger;
     }
 
     private void handleGlowVisibility() {
@@ -528,7 +528,9 @@ public class ExpandHelper implements Gefingerpoken, OnClickListener {
         mCallback.setUserLockedChild(v, true);
         if (DEBUG) Log.d(TAG, "got mOldHeight: " + mOldHeight +
                     " mNaturalHeight: " + mNaturalHeight);
-        v.getParent().requestDisallowInterceptTouchEvent(true);
+        if (v != null && v.getParent() != null) {
+            v.getParent().requestDisallowInterceptTouchEvent(true);
+        }
     }
 
     public float getNaturalHeight() {

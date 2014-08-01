@@ -60,7 +60,10 @@ interface IPowerManager
 
     void setKeyboardLight(boolean on, int key);
 
-	void setPowerProfile(String profile);
+    	void setPowerProfile(String profile);
 	String getPowerProfile();
 	void wakeUpWithProximityCheck(long time);
+
+    // blocked wakelock support
+    String getSeenWakeLocks();
 }

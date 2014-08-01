@@ -137,10 +137,14 @@ public class NavigationRingHelpers {
             resourceId = com.android.internal.R.drawable.ic_navigation_ring_kill_task;
         } else if (action.equals(ACTION_STANDBY)) {
             resourceId = com.android.internal.R.drawable.ic_navigation_ring_standby;
+	} else if (action.equals(ACTION_POWER_MENU)) {
+            resourceId = com.android.internal.R.drawable.ic_navigation_ring_power_menu;
         } else if (action.equals(ACTION_TORCH)) {
             resourceId = getTorchDrawableResId(context);
         } else if (action.equals(ACTION_ASSIST)) {
             resourceId = com.android.internal.R.drawable.ic_action_assist_generic;
+        } else if (action.equals(ACTION_LAST_APP)) {
+            resourceId = com.android.internal.R.drawable.ic_navigation_ring_lastapp;
         }
 
         if (resourceId < 0) {

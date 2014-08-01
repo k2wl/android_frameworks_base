@@ -19,6 +19,7 @@ package android.view;
 import com.android.internal.view.IInputContext;
 import com.android.internal.view.IInputMethodClient;
 
+import android.content.Intent;
 import android.content.res.CompatibilityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -120,6 +121,13 @@ interface IWindowManager
     boolean isKeyguardSecure();
     boolean inKeyguardRestrictedInputMode();
     void dismissKeyguard();
+
+    /**
+     * Tell keyguard to show a custom intent after asking for the user's
+     * credentials.
+     * @hide
+     */
+    void showCustomIntentOnKeyguard(inout Intent intent);
 
     void closeSystemDialogs(String reason);
 
@@ -236,11 +244,6 @@ interface IWindowManager
     boolean hasNavigationBar();
 
     /**
-     * Device needs a software navigation bar (because it has no hardware keys).
-     */
-    boolean needsNavigationBar();
-
-    /**
      * Device can generate KEY_ACTION_MENU keypress
      */
     boolean hasMenuKeyEnabled();
@@ -302,4 +305,25 @@ interface IWindowManager
      * @param enabled Whether touch exploration is enabled.
      */
     void setTouchExplorationEnabled(boolean enabled);
+
+    /**
+     * Get current system ui visibility mode.
+     *
+     * @hide
+     */
+    int getSystemUIVisibility();
+
+    /**
+     * Toggle global menu
+     *
+     * @hide
+     */
+    void toggleGlobalMenu();
+
+    /**
+     * Toggle statusbar on expanded desktop
+     *
+     * @hide
+     */
+    void toggleStatusBar();
 }

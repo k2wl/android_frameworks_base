@@ -24,6 +24,7 @@ import android.view.WindowManager;
 
 import com.android.internal.statusbar.StatusBarIcon;
 import com.android.systemui.statusbar.BaseStatusBar;
+import com.android.systemui.statusbar.NotificationData;
 
 /*
  * Status bar implementation for "large screen" products that mostly present no on-screen nav
@@ -58,6 +59,7 @@ public class TvStatusBar extends BaseStatusBar {
 
     @Override
     public void disable(int state) {
+        propagateDisabledFlags(state);
     }
 
     @Override
@@ -74,6 +76,7 @@ public class TvStatusBar extends BaseStatusBar {
 
     @Override
     public void topAppWindowChanged(boolean visible) {
+        propagateMenuVisibility(visible);
     }
 
     @Override
@@ -90,6 +93,18 @@ public class TvStatusBar extends BaseStatusBar {
 
     @Override // CommandQueue
     public void setWindowState(int window, int state) {
+    }
+
+    @Override // CommandQueue
+    public void setAutoRotate(boolean enabled) {
+    }
+
+    @Override // CommandQueue
+    public void toggleNotificationShade() {
+    }
+
+    @Override // CommandQueue
+    public void toggleQSShade() {
     }
 
     @Override
@@ -111,7 +126,7 @@ public class TvStatusBar extends BaseStatusBar {
     }
 
     @Override
-    protected void updateNotificationIcons() {
+    public void updateNotificationIcons() {
     }
 
     @Override
@@ -142,6 +157,11 @@ public class TvStatusBar extends BaseStatusBar {
         return true;
     }
 
+    @Override
+    public boolean isExpandedVisible() {
+        return false;
+    }
+
     public View getStatusBarView() {
         return null;
     }
@@ -151,11 +171,25 @@ public class TvStatusBar extends BaseStatusBar {
     }
 
     @Override
+    public boolean panelsEnabled() {
+        return false;
+    }
+
+    @Override
+    public void populateHeadsUp(IBinder key,
+            StatusBarNotification notification, NotificationData.Entry shadeEntry) {
+    }
+
+    @Override
     public void hideHeadsUp() {
     }
 
     @Override
-    public void animateExpandSettingsPanel() {
+    public void updateHeadsUpPosition(boolean statusBarShows) {
+    }
+
+    @Override
+    public void animateExpandSettingsPanel(boolean flip) {
     }
 
     @Override

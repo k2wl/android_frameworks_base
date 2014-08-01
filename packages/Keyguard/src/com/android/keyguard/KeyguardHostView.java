@@ -421,6 +421,7 @@ public class KeyguardHostView extends KeyguardViewBase {
         mExpandChallengeView = (View) findViewById(R.id.expand_challenge_handle);
         if (mExpandChallengeView != null) {
             mExpandChallengeView.setOnLongClickListener(mFastUnlockClickListener);
+            mExpandChallengeView.bringToFront();
         }
     }
 
@@ -679,6 +680,9 @@ public class KeyguardHostView extends KeyguardViewBase {
             case Password:
                 messageId = R.string.kg_too_many_failed_password_attempts_dialog_message;
                 break;
+            case Gesture:
+                messageId = R.string.kg_too_many_failed_gesture_attempts_dialog_message;
+                break;
         }
 
         if (messageId != 0) {
@@ -769,15 +773,24 @@ public class KeyguardHostView extends KeyguardViewBase {
      * @param turningOff true if the device is being turned off
      */
     void showPrimarySecurityScreen(boolean turningOff) {
-        SecurityMode securityMode = mSecurityModel.getSecurityMode();
-        if (DEBUG) Log.v(TAG, "showPrimarySecurityScreen(turningOff=" + turningOff + ")");
-        if (!turningOff &&
-                KeyguardUpdateMonitor.getInstance(mContext).isAlternateUnlockEnabled()) {
-            // If we're not turning off, then allow biometric alternate.
-            // We'll reload it when the device comes back on.
-            securityMode = mSecurityModel.getAlternateFor(securityMode);
-        }
-        showSecurityScreen(securityMode);
+        final boolean lockBeforeUnlock = Settings.Secure.getIntForUser(
+                mContext.getContentResolver(),
+                Settings.Secure.LOCK_BEFORE_UNLOCK, 0,
+                UserHandle.USER_CURRENT) == 1;
+        
+        if (lockBeforeUnlock && !isSimOrAccount(mCurrentSecuritySelection, true)) {
+            showSecurityScreen(SecurityMode.None);
+        } else {
+            SecurityMode securityMode = mSecurityModel.getSecurityMode();
+            if (DEBUG) Log.v(TAG, "showPrimarySecurityScreen(turningOff=" + turningOff + ")");
+            if (!turningOff &&
+                    KeyguardUpdateMonitor.getInstance(mContext).isAlternateUnlockEnabled()) {
+                // If we're not turning off, then allow biometric alternate.
+                // We'll reload it when the device comes back on.
+                securityMode = mSecurityModel.getAlternateFor(securityMode);
+            }
+            showSecurityScreen(securityMode);
+          }
     }
 
     /**
@@ -822,6 +835,7 @@ public class KeyguardHostView extends KeyguardViewBase {
                 case PIN:
                 case Account:
                 case Biometric:
+                case Gesture:
                     finish = true;
                     break;
 
@@ -1021,14 +1035,11 @@ public class KeyguardHostView extends KeyguardViewBase {
 
         // Enter full screen mode if we're in SIM or Account screen
         boolean fullScreenEnabled = getResources().getBoolean(R.bool.kg_sim_puk_account_full_screen);
-        boolean isSimOrAccount = securityMode == SecurityMode.SimPin
-                || securityMode == SecurityMode.SimPuk
-                || securityMode == SecurityMode.Account;
         mAppWidgetContainer.setVisibility(
-                isSimOrAccount && fullScreenEnabled ? View.GONE : View.VISIBLE);
+                isSimOrAccount(securityMode, false) && fullScreenEnabled ? View.GONE : View.VISIBLE);
 
         // Don't show camera or search in navbar when SIM or Account screen is showing
-        setSystemUiVisibility(isSimOrAccount ?
+        setSystemUiVisibility(isSimOrAccount(securityMode, false) ?
                 (getSystemUiVisibility() | View.STATUS_BAR_DISABLE_SEARCH)
                 : (getSystemUiVisibility() & ~View.STATUS_BAR_DISABLE_SEARCH));
 
@@ -1145,7 +1156,8 @@ public class KeyguardHostView extends KeyguardViewBase {
     }
 
     private void minimizeChallengeIfDesired() {
-        if (mSlidingChallengeLayout == null) {
+        if (mSlidingChallengeLayout == null
+                || isSimOrAccount(mCurrentSecuritySelection, true)) {
             return;
         }
         int setting = Settings.System.getIntForUser(getContext().getContentResolver(),
@@ -1153,6 +1165,15 @@ public class KeyguardHostView extends KeyguardViewBase {
         if (setting == 1) {
             mSlidingChallengeLayout.showChallenge(false);
         }
+    }
+
+    private boolean isSimOrAccount(SecurityMode securityMode, boolean isInvalidCheck) {
+        final boolean isSimOrAccount = securityMode == SecurityMode.SimPin
+                || securityMode == SecurityMode.SimPuk
+                || securityMode == SecurityMode.Account;
+        return isInvalidCheck
+                ? isSimOrAccount || securityMode == SecurityMode.Invalid
+                : isSimOrAccount;
     }
 
     private int getSecurityViewIdForMode(SecurityMode securityMode) {
@@ -1173,6 +1194,7 @@ public class KeyguardHostView extends KeyguardViewBase {
                     return R.id.msim_keyguard_sim_puk_view;
                 }
                 return R.id.keyguard_sim_puk_view;
+            case Gesture: return R.id.keyguard_gesture_view;
         }
         return 0;
     }
@@ -1195,6 +1217,7 @@ public class KeyguardHostView extends KeyguardViewBase {
                     return R.layout.msim_keyguard_sim_puk_view;
                 }
                 return R.layout.keyguard_sim_puk_view;
+            case Gesture: return R.layout.keyguard_gesture_view;
             default:
                 return 0;
         }
@@ -1817,10 +1840,17 @@ public class KeyguardHostView extends KeyguardViewBase {
         showNextSecurityScreenOrFinish(false);
     }
 
+    public void showCustomIntent(Intent intent) {
+        startActivity(intent);
+    }
+
     public void showAssistant() {
         final Intent intent = ((SearchManager) mContext.getSystemService(Context.SEARCH_SERVICE))
           .getAssistIntent(mContext, true, UserHandle.USER_CURRENT);
+        startActivity(intent);
+    }
 
+    private void startActivity(Intent intent) {
         if (intent == null) return;
 
         final ActivityOptions opts = ActivityOptions.makeCustomAnimation(mContext,

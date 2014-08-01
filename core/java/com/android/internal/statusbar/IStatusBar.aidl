@@ -29,9 +29,12 @@ oneway interface IStatusBar
     void removeNotification(IBinder key);
     void disable(int state);
     void animateExpandNotificationsPanel();
-    void animateExpandSettingsPanel();
+    void animateExpandSettingsPanel(boolean flip);
     void animateCollapsePanels();
     void setSystemUiVisibility(int vis, int mask);
+    void hideHeadsUp();
+    void hideHeadsUpCandidate(String packageName);
+    void updateHeadsUpPosition(boolean statusBarShows);
     void topAppWindowChanged(boolean menuVisible);
     void setImeWindowStatus(in IBinder token, int vis, int backDisposition);
     void setHardKeyboardStatus(boolean available, boolean enabled);
@@ -39,5 +42,13 @@ oneway interface IStatusBar
     void preloadRecentApps();
     void cancelPreloadRecentApps();
     void setWindowState(int window, int state);
+    void setPieTriggerMask(int newMask, boolean lock);
+    void setAutoRotate(boolean enabled);
+    void toggleNotificationShade();
+    void toggleQSShade();
+    void toggleScreenshot();
+    void toggleLastApp();
+    void toggleKillApp();
+    void setButtonDrawable(int buttonId, int iconId);
 }
 

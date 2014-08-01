@@ -34,7 +34,8 @@ interface IStatusBarService
     void setImeWindowStatus(in IBinder token, int vis, int backDisposition);
     void expandSettingsPanel();
     void setCurrentUser(int newUserId);
-
+    void setButtonDrawable(int buttonId, int iconId);
+    
     // ---- Methods below are for use by the status bar policy services ----
     // You need the STATUS_BAR_SERVICE permission
     void registerStatusBar(IStatusBar callbacks, out StatusBarIconList iconList,
@@ -47,9 +48,19 @@ interface IStatusBarService
     void onClearAllNotifications();
     void onNotificationClear(String pkg, String tag, int id);
     void setSystemUiVisibility(int vis, int mask);
+    void hideHeadsUp();
+    void hideHeadsUpCandidate(String packageName);
+    void updateHeadsUpPosition(boolean statusBarShows);
     void setHardKeyboardEnabled(boolean enabled);
     void toggleRecentApps();
     void preloadRecentApps();
     void cancelPreloadRecentApps();
     void setWindowState(int window, int state);
+    void setPieTriggerMask(int newMask, boolean lock);
+    void setAutoRotate(boolean enabled);
+    void toggleNotificationShade();
+    void toggleQSShade();
+    void toggleScreenshot();
+    void toggleLastApp();
+    void toggleKillApp();
 }

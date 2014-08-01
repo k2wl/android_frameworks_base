@@ -147,6 +147,10 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
 
         }
 
+        public void onTargetChange(View v, int target) {
+
+        }
+
         public void onFinishFinalAnimation() {
 
         }
@@ -176,11 +180,6 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
         @Override
         LockPatternUtils getLockPatternUtils() {
             return mLockPatternUtils;
-        }
-
-        @Override
-        protected void dismissKeyguardOnNextActivity() {
-            getCallback().dismiss(false);
         }
 
         @Override
@@ -228,6 +227,22 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
                     return mDoubleTapGesture.onTouchEvent(event);
                 }
             });
+        }
+
+	final boolean lockBeforeUnlock = Settings.Secure.getIntForUser(
+                mContext.getContentResolver(),
+                Settings.Secure.LOCK_BEFORE_UNLOCK, 0,
+                UserHandle.USER_CURRENT) == 1;
+
+        // bring emergency button on slider lockscreen
+        // to front when lockBeforeUnlock is enabled
+        // to make it clickable
+        if (mLockPatternUtils != null && mLockPatternUtils.isSecure() && lockBeforeUnlock) {
+            LinearLayout ecaContainer =
+                (LinearLayout) findViewById(R.id.keyguard_selector_fade_container);
+            if (ecaContainer != null) {
+                ecaContainer.bringToFront();
+            }
         }
     }
 

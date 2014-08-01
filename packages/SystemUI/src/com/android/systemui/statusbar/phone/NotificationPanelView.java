@@ -17,20 +17,37 @@
 package com.android.systemui.statusbar.phone;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.PorterDuff.Mode;
+import android.net.Uri;
+import android.provider.Settings;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.EventLog;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Display;
+import android.view.Surface;
+import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
+import android.widget.ImageView;
 
 import com.android.systemui.EventLogTags;
 import com.android.systemui.R;
+import com.android.systemui.settings.BrightnessController;
+import com.android.systemui.settings.ToggleSlider;
 import com.android.systemui.statusbar.GestureRecorder;
+
+import java.io.File;
 
 public class NotificationPanelView extends PanelView {
     public static final boolean DEBUG_GESTURES = true;
@@ -42,9 +59,11 @@ public class NotificationPanelView extends PanelView {
     private static final float STATUS_BAR_SWIPE_MOVE_PERCENTAGE = 0.2f;
 
     Drawable mHandleBar;
+    Drawable mBackgroundDrawable;
+    Drawable mBackgroundDrawableLandscape;
     int mHandleBarHeight;
     View mHandleView;
-    int mFingers;
+    ImageView mBackground;
     PhoneStatusBar mStatusBar;
     boolean mOkToFlip;
 
@@ -67,19 +86,24 @@ public class NotificationPanelView extends PanelView {
     protected void onFinishInflate() {
         super.onFinishInflate();
 
-        Resources resources = getContext().getResources();
+        Resources resources = mContext.getResources();
         mHandleBar = resources.getDrawable(R.drawable.status_bar_close);
         mHandleBarHeight = resources.getDimensionPixelSize(R.dimen.close_handle_height);
         mHandleView = findViewById(R.id.handle);
+        mBackground = (ImageView) findViewById(R.id.notification_wallpaper);
+        setBackgroundDrawables();
+
     }
 
     @Override
     public void fling(float vel, boolean always) {
-        GestureRecorder gr = ((PhoneStatusBarView) mBar).mBar.getGestureRecorder();
-        if (gr != null) {
-            gr.tag(
-                "fling " + ((vel > 0) ? "open" : "closed"),
-                "notifications,v=" + vel);
+        if (DEBUG_GESTURES) {
+            GestureRecorder gr = ((PhoneStatusBarView) mBar).mBar.getGestureRecorder();
+            if (gr != null) {
+                gr.tag(
+                    "fling " + ((vel > 0) ? "open" : "closed"),
+                    "notifications,v=" + vel);
+            }
         }
         super.fling(vel, always);
     }
@@ -88,7 +112,7 @@ public class NotificationPanelView extends PanelView {
     public boolean dispatchPopulateAccessibilityEvent(AccessibilityEvent event) {
         if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             event.getText()
-                    .add(getContext().getString(R.string.accessibility_desc_notification_shade));
+                    .add(mContext.getString(R.string.accessibility_desc_notification_shade));
             return true;
         }
 
@@ -109,7 +133,7 @@ public class NotificationPanelView extends PanelView {
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
-        final int off = (int) (getHeight() - mHandleBarHeight - getPaddingBottom());
+        final int off = (getHeight() - mHandleBarHeight - getPaddingBottom());
         canvas.translate(0, off);
         mHandleBar.setState(mHandleView.getDrawableState());
         mHandleBar.draw(canvas);
@@ -137,13 +161,24 @@ public class NotificationPanelView extends PanelView {
                         // Pointer is at the handle portion of the view?
                         mGestureStartY > getHeight() - mHandleBarHeight - getPaddingBottom();
                     mOkToFlip = getExpandedHeight() == 0;
-                    if (event.getX(0) > getWidth() * (1.0f - STATUS_BAR_SETTINGS_RIGHT_PERCENTAGE) &&
-                            Settings.System.getIntForUser(getContext().getContentResolver(),
-                                    Settings.System.QS_QUICK_PULLDOWN, 0, UserHandle.USER_CURRENT) == 1) {
+                    int quickPulldownMode = Settings.System.getIntForUser(
+                            mContext.getContentResolver(), Settings.System.QS_QUICK_PULLDOWN,
+                            0, UserHandle.USER_CURRENT);
+                    int smartPulldownMode = Settings.System.getIntForUser(
+                            mContext.getContentResolver(), Settings.System.QS_SMART_PULLDOWN,
+                            0, UserHandle.USER_CURRENT);
+                    if (smartPulldownMode == 1 && !mStatusBar.hasClearableNotifications()) {
                         flip = true;
-                    } else if (event.getX(0) < getWidth() * (1.0f - STATUS_BAR_SETTINGS_LEFT_PERCENTAGE) &&
-                            Settings.System.getIntForUser(getContext().getContentResolver(),
-                                    Settings.System.QS_QUICK_PULLDOWN, 0, UserHandle.USER_CURRENT) == 2) {
+                    } else if (smartPulldownMode == 2 && !mStatusBar.hasVisibleNotifications()) {
+                        flip = true;
+                    } else if (smartPulldownMode == 3 && !mStatusBar.hasVisibleNotifications()
+                            && !mStatusBar.hasClearableNotifications()) {
+                        flip = true;
+                    } else if (quickPulldownMode == 1
+                            && mGestureStartX > getWidth() * (1.0f - STATUS_BAR_SETTINGS_RIGHT_PERCENTAGE)) {
+                        flip = true;
+                    } else if (quickPulldownMode == 2
+                            && mGestureStartX < getWidth() * (1.0f - STATUS_BAR_SETTINGS_LEFT_PERCENTAGE)) {
                         flip = true;
                     }
                     break;
@@ -238,5 +273,103 @@ public class NotificationPanelView extends PanelView {
             event.recycle();
         }
         return result;
+    }
+
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+            setNotificationWallpaper();
+    }
+
+    private void setNotificationWallpaper() {
+        if (mBackgroundDrawable == null) {
+            return;
+        }
+        boolean isLandscape = false;
+        Display display = ((WindowManager) mContext
+                .getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        int orientation = display.getRotation();
+        switch(orientation) {
+            case Surface.ROTATION_90:
+            case Surface.ROTATION_270:
+                isLandscape = true;
+                break;
+        }
+
+        if (mBackgroundDrawableLandscape != null && isLandscape) {
+            mBackground.setImageDrawable(mBackgroundDrawableLandscape);
+        } else {
+            mBackground.setImageDrawable(mBackgroundDrawable);
+        }
+    }
+
+    private void setDefaultBackground(int resource, int color, int alpha) {
+        setBackgroundResource(resource);
+        if (color != -2) {
+            getBackground().setColorFilter(color, Mode.SRC_ATOP);
+        } else {
+            getBackground().setColorFilter(null);
+        }
+        getBackground().setAlpha(alpha);
+        mBackgroundDrawableLandscape = null;
+        mBackgroundDrawable = null;
+        mBackground.setImageDrawable(null);
+    }
+
+    protected void setBackgroundDrawables() {
+        float alpha = Settings.System.getFloatForUser(
+                mContext.getContentResolver(),
+                Settings.System.NOTIFICATION_BACKGROUND_ALPHA, 0.1f,
+                UserHandle.USER_CURRENT);
+        int backgroundAlpha = (int) ((1 - alpha) * 255);
+
+        String notifiBack = Settings.System.getStringForUser(
+                mContext.getContentResolver(),
+                Settings.System.NOTIFICATION_BACKGROUND,
+                UserHandle.USER_CURRENT);
+
+        if (notifiBack == null) {
+            setDefaultBackground(R.drawable.notification_panel_bg, -2, backgroundAlpha);
+            return;
+        }
+
+        if (notifiBack.startsWith("color=")) {
+            notifiBack = notifiBack.substring("color=".length());
+            try {
+                setDefaultBackground(R.drawable.notification_panel_bg,
+                        Color.parseColor(notifiBack), backgroundAlpha);
+            } catch(NumberFormatException e) {
+            }
+        } else {
+            File f = new File(Uri.parse(notifiBack).getPath());
+            if (f !=  null) {
+                Bitmap backgroundBitmap = BitmapFactory.decodeFile(f.getAbsolutePath());
+                mBackgroundDrawable =
+                    new BitmapDrawable(mContext.getResources(), backgroundBitmap);
+            }
+        }
+        if (mBackgroundDrawable != null) {
+            setBackgroundResource(com.android.internal.R.color.transparent);
+            mBackgroundDrawable.setAlpha(backgroundAlpha);
+        }
+
+        notifiBack = Settings.System.getStringForUser(
+                mContext.getContentResolver(),
+                Settings.System.NOTIFICATION_BACKGROUND_LANDSCAPE,
+                UserHandle.USER_CURRENT);
+
+        mBackgroundDrawableLandscape = null;
+        if (notifiBack != null) {
+            File f = new File(Uri.parse(notifiBack).getPath());
+            if (f !=  null) {
+                Bitmap backgroundBitmap = BitmapFactory.decodeFile(f.getAbsolutePath());
+                mBackgroundDrawableLandscape =
+                    new BitmapDrawable(mContext.getResources(), backgroundBitmap);
+            }
+        }
+        if (mBackgroundDrawableLandscape != null) {
+            mBackgroundDrawableLandscape.setAlpha(backgroundAlpha);
+        }
+
+        setNotificationWallpaper();
     }
 }

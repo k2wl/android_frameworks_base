@@ -30,6 +30,8 @@ import android.view.GestureDetector;
 import android.os.PowerManager;
 import android.provider.Settings;
 
+import com.android.internal.util.gesture.EdgeGesturePosition;
+
 import com.android.systemui.EventLogTags;
 import com.android.systemui.R;
 
@@ -172,12 +174,16 @@ public class PhoneStatusBarView extends PanelBar {
     @Override
     public void startOpeningPanel(PanelView panel) {
         super.startOpeningPanel(panel);
+        // First we hide heads up notification if present.
+        mBar.hideHeadsUp();
         // we only want to start fading if this is the "first" or "last" panel,
         // which is kind of tricky to determine
         mShouldFade = (mFadingPanel == null || mFadingPanel.isFullyExpanded());
         if (DEBUG) {
             Log.v(TAG, "start opening: " + panel + " shouldfade=" + mShouldFade);
         }
+
+        mBar.toggleReminderFlipper(true);
         mFadingPanel = panel;
     }
 
@@ -191,6 +197,8 @@ public class PhoneStatusBarView extends PanelBar {
         if (mScrimColor != 0 && ActivityManager.isHighEndGfx()) {
             mBar.mStatusBarWindow.setBackgroundColor(0);
         }
+        mBar.restorePieTriggerMask();
+        mBar.setOverwriteImeIsActive(false);
     }
 
     @Override
@@ -199,6 +207,16 @@ public class PhoneStatusBarView extends PanelBar {
         if (openPanel != mLastFullyOpenedPanel) {
             openPanel.sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
         }
+
+        // Panel is open disable bottom edge and enable all other
+        // if the user activated them
+        if (mShouldFade) {
+            mBar.updatePieTriggerMask(EdgeGesturePosition.LEFT.FLAG
+                    | EdgeGesturePosition.RIGHT.FLAG
+                    | EdgeGesturePosition.TOP.FLAG, true);
+            mBar.setOverwriteImeIsActive(true);
+        }
+
         mFadingPanel = openPanel;
         mLastFullyOpenedPanel = openPanel;
         mShouldFade = true; // now you own the fade, mister

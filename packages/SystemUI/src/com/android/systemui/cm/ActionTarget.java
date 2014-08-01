@@ -44,11 +44,13 @@ import android.os.Vibrator;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.InputDevice;
+import android.view.IWindowManager;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
 import com.android.internal.statusbar.IStatusBarService;
+import com.android.internal.util.crdroid.TaskUtils;
 import com.android.internal.util.cm.TorchConstants;
 import static com.android.internal.util.cm.NavigationRingConstants.*;
 import com.android.systemui.R;
@@ -84,6 +86,10 @@ public class ActionTarget {
     }
 
     public boolean launchAction(String action, Bundle opts) {
+
+        final IWindowManager windowManagerService = IWindowManager.Stub.asInterface(
+                    ServiceManager.getService(Context.WINDOW_SERVICE));
+
         if (TextUtils.isEmpty(action) || action.equals(ACTION_NONE)) {
             return false;
         } else if (action.equals(ACTION_RECENTS)) {
@@ -106,6 +112,15 @@ public class ActionTarget {
             return true;
         } else if (action.equals(ACTION_STANDBY)) {
             injectKeyDelayed(KeyEvent.KEYCODE_POWER);
+            return true;
+        } else if (action.equals(ACTION_POWER_MENU)) {
+            try {
+                windowManagerService.toggleGlobalMenu();
+            } catch (RemoteException e) {
+            }
+            return true;
+        } else if (action.equals(ACTION_LAST_APP)) {
+            TaskUtils.toggleLastAppImpl(mContext);
             return true;
         } else if (action.equals(ACTION_IME_SWITCHER)) {
             mContext.sendBroadcast(new Intent("android.settings.SHOW_INPUT_METHOD_PICKER"));

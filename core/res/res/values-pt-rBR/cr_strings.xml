@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+  <!-- Error description on theme switch with ligtsensor mode enabled -->
+  <string name="theme_auto_switch_mode_error">Condição de luz automática está habilitada. Não é possível troca manual</string>
+  
+  <!-- Title of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
+  <string name="permlab_recordScreen">Gravar o que está sendo mostrado</string>
+  <!-- Description of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
+  <string name="permdesc_recordScreen">Permitir ao aplicativo gravar a tela do usuário</string>
+
+  <!-- label for screen record item in phone options dialog -->
+  <string name="global_action_screen_record">Gravador de tela</string>
+
+  <!-- label for nav bar item in phone options dialog -->
+  <string name="global_actions_nav_bar_mode">Barra de navegação</string>
+  <!-- status message in phone options dialog for when navigation bar is on -->
+  <string name="global_actions_nav_bar_mode_on_status">Barra de navegação habilitada</string>
+  <!-- status message in phone options dialog for when navigation bar is off -->
+  <string name="global_actions_nav_bar_mode_off_status">Barra de navegação desabilitada</string>
+  <!-- Error message if user want to try to disable all navigation options -->
+  <string name="disable_navigation_pie_error">Você não pode desabilitar a barra de navegação. Nenhum outro modo de navegação está habilitado. Primeiro habilite o controle pie para desabilitar a barra de navegação.</string>
+
+</resources>

@@ -28,10 +28,15 @@ import android.content.res.TypedArray;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.os.ResultReceiver;
+import android.os.ServiceManager;
 import android.os.SystemClock;
+import android.os.UserHandle;
 import android.provider.Settings;
+import android.service.gesture.IEdgeGestureService;
 import android.text.InputType;
 import android.text.Layout;
 import android.text.Spannable;
@@ -62,6 +67,8 @@ import android.view.inputmethod.InputMethodSubtype;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+
+import com.android.internal.statusbar.IStatusBarService;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -317,6 +324,14 @@ public class InputMethodService extends AbstractInputMethodService {
     int mStatusIcon;
     int mBackDisposition;
 
+    boolean mForcedAutoRotate;
+    Handler mHandler;
+
+    private IStatusBarService mStatusBarService;
+    private Object mServiceAquireLock = new Object();
+
+    private IEdgeGestureService mEdgeGestureService;
+
     final Insets mTmpInsets = new Insets();
     final int[] mTmpLocation = new int[2];
 
@@ -395,6 +410,7 @@ public class InputMethodService extends AbstractInputMethodService {
             if (DEBUG) Log.v(TAG, "unbindInput(): binding=" + mInputBinding
                     + " ic=" + mInputConnection);
             onUnbindInput();
+            mInputStarted = false;
             mInputBinding = null;
             mInputConnection = null;
         }
@@ -728,6 +744,8 @@ public class InputMethodService extends AbstractInputMethodService {
         mCandidatesVisibility = getCandidatesHiddenVisibility();
         mCandidatesFrame.setVisibility(mCandidatesVisibility);
         mInputFrame.setVisibility(View.GONE);
+
+        mHandler = new Handler();
     }
 
     @Override public void onDestroy() {
@@ -893,7 +911,15 @@ public class InputMethodService extends AbstractInputMethodService {
      * is currently running in fullscreen mode.
      */
     public void updateFullscreenMode() {
-        boolean isFullscreen = mShowInputRequested && onEvaluateFullscreenMode();
+        boolean fullScreenOverride = Settings.System.getIntForUser(getContentResolver(),
+                Settings.System.DISABLE_FULLSCREEN_KEYBOARD, 0,
+                UserHandle.USER_CURRENT_OR_SELF) != 0;
+        boolean isFullscreen;
+        if (fullScreenOverride) {
+            isFullscreen = false;
+        } else {
+            isFullscreen = mShowInputRequested && onEvaluateFullscreenMode();
+        }
         boolean changed = mLastShowInputRequested != mShowInputRequested;
         if (mIsFullscreen != isFullscreen || !mFullscreenApplied) {
             changed = true;
@@ -1426,9 +1452,42 @@ public class InputMethodService extends AbstractInputMethodService {
             mWindowWasVisible = mWindowVisible;
             mInShowWindow = true;
             showWindowInner(showInput);
+            if (showInput) {
+                // IME softkeyboard is showing. Notify EdgeGestureService.
+                IEdgeGestureService edgeGestureService = getEdgeGestureService();
+                try {
+                    if (edgeGestureService != null) {
+                        edgeGestureService.setImeIsActive(true);
+                    }
+                } catch (RemoteException e) {
+                    mEdgeGestureService = null;
+                }
+            }
         } finally {
             mWindowWasVisible = true;
             mInShowWindow = false;
+        }
+
+        IStatusBarService statusbar = getStatusBarService();
+        int mKeyboardRotationTimeout = Settings.System.getIntForUser(getContentResolver(),
+                Settings.System.KEYBOARD_ROTATION_TIMEOUT, 0, UserHandle.USER_CURRENT_OR_SELF);
+        if (mKeyboardRotationTimeout > 0) {
+            mHandler.removeCallbacks(restoreAutoRotation);
+            if (!mForcedAutoRotate) {
+                boolean isAutoRotate = (Settings.System.getIntForUser(getContentResolver(),
+                    Settings.System.ACCELEROMETER_ROTATION, 0,
+                    UserHandle.USER_CURRENT_OR_SELF) == 1);
+                if (!isAutoRotate) {
+                    try {
+                        if (statusbar != null) {
+                            statusbar.setAutoRotate(true);
+                            mForcedAutoRotate = true;
+                        }
+                    } catch (RemoteException e) {
+                        mStatusBarService = null;
+                    }
+                }
+            }
         }
     }
 
@@ -1512,7 +1571,40 @@ public class InputMethodService extends AbstractInputMethodService {
             onWindowHidden();
             mWindowWasVisible = false;
         }
+
+        // IME softkeyboard is hiding. Notify EdgeGestureService.
+        IEdgeGestureService edgeGestureService = getEdgeGestureService();
+        try {
+            if (edgeGestureService != null) {
+                edgeGestureService.setImeIsActive(false);
+            }
+        } catch (RemoteException e) {
+            mEdgeGestureService = null;
+        }
+
+        int mKeyboardRotationTimeout = Settings.System.getIntForUser(getContentResolver(),
+                Settings.System.KEYBOARD_ROTATION_TIMEOUT, 0, UserHandle.USER_CURRENT_OR_SELF);
+        if (mKeyboardRotationTimeout > 0) {
+            mHandler.removeCallbacks(restoreAutoRotation);
+            if (mForcedAutoRotate) {
+                mHandler.postDelayed(restoreAutoRotation, mKeyboardRotationTimeout);
+            }
+        }
     }
+
+    final Runnable restoreAutoRotation = new Runnable() {
+        @Override public void run() {
+            try {
+                IStatusBarService statusbar = getStatusBarService();
+                if (statusbar != null) {
+                    statusbar.setAutoRotate(false);
+                }
+                mForcedAutoRotate = false;
+            } catch (RemoteException e) {
+                mStatusBarService = null;
+            }
+        }
+    };
 
     /**
      * Called when the input method window has been shown to the user, after
@@ -1788,8 +1880,8 @@ public class InputMethodService extends AbstractInputMethodService {
             return false;
         }
         if (event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP) {
-            mVolumeKeyCursorControl = Settings.System.getInt(getContentResolver(),
-                    Settings.System.VOLUME_KEY_CURSOR_CONTROL, 0);
+            mVolumeKeyCursorControl = Settings.System.getIntForUser(getContentResolver(),
+                    Settings.System.VOLUME_KEY_CURSOR_CONTROL, 0, UserHandle.USER_CURRENT_OR_SELF);
             if (isInputViewShown() && (mVolumeKeyCursorControl != VOLUME_CURSOR_OFF)) {
                 sendDownUpKeyEvents((mVolumeKeyCursorControl == VOLUME_CURSOR_ON_REVERSE)
                         ? KeyEvent.KEYCODE_DPAD_RIGHT : KeyEvent.KEYCODE_DPAD_LEFT);
@@ -1798,8 +1890,8 @@ public class InputMethodService extends AbstractInputMethodService {
             return false;
         }
         if (event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            mVolumeKeyCursorControl = Settings.System.getInt(getContentResolver(),
-                    Settings.System.VOLUME_KEY_CURSOR_CONTROL, 0);
+            mVolumeKeyCursorControl = Settings.System.getIntForUser(getContentResolver(),
+                    Settings.System.VOLUME_KEY_CURSOR_CONTROL, 0, UserHandle.USER_CURRENT_OR_SELF);
             if (isInputViewShown() && (mVolumeKeyCursorControl != VOLUME_CURSOR_OFF)) {
                 sendDownUpKeyEvents((mVolumeKeyCursorControl == VOLUME_CURSOR_ON_REVERSE)
                         ? KeyEvent.KEYCODE_DPAD_LEFT : KeyEvent.KEYCODE_DPAD_RIGHT);
@@ -2188,6 +2280,29 @@ public class InputMethodService extends AbstractInputMethodService {
         return true;
     }
     
+    private IStatusBarService getStatusBarService() {
+        synchronized (mServiceAquireLock) {
+            if (mStatusBarService == null) {
+                mStatusBarService = IStatusBarService.Stub.asInterface(
+                        ServiceManager.getService("statusbar"));
+            }
+            return mStatusBarService;
+        }
+    }
+    
+    /**
+     * If not set till now get EdgeGestureService.
+     */
+    private IEdgeGestureService getEdgeGestureService() {
+        synchronized (mServiceAquireLock) {
+            if (mEdgeGestureService == null) {
+                mEdgeGestureService = IEdgeGestureService.Stub.asInterface(
+                            ServiceManager.getService("edgegestureservice"));
+            }
+            return mEdgeGestureService;
+        }
+    }
+
     /**
      * Return text that can be used as a button label for the given
      * {@link EditorInfo#imeOptions EditorInfo.imeOptions}.  Returns null

@@ -146,7 +146,7 @@ public class StatusBarManagerService extends IStatusBarService.Stub
 
         if (mBar != null) {
             try {
-                mBar.animateExpandSettingsPanel();
+                mBar.animateExpandSettingsPanel(true);
             } catch (RemoteException ex) {
             }
         }
@@ -186,6 +186,13 @@ public class StatusBarManagerService extends IStatusBarService.Stub
                 } catch (RemoteException ex) {
                 }
             }
+        }
+    }
+
+    public void setButtonDrawable(int buttonId, int iconId) {
+        try {
+            mBar.setButtonDrawable(buttonId, iconId);
+        } catch (RemoteException ex) {
         }
     }
 
@@ -367,6 +374,33 @@ public class StatusBarManagerService extends IStatusBarService.Stub
     }
 
     @Override
+    public void hideHeadsUp() {
+        if (mBar != null) {
+            try {
+                mBar.hideHeadsUp();
+            } catch (RemoteException ex) {}
+        }
+    }
+
+    @Override
+    public void hideHeadsUpCandidate(String packageName) {
+        if (mBar != null) {
+            try {
+                mBar.hideHeadsUpCandidate(packageName);
+            } catch (RemoteException ex) {}
+        }
+    }
+
+    @Override
+    public void updateHeadsUpPosition(boolean statusBarShows) {
+        if (mBar != null) {
+            try {
+                mBar.updateHeadsUpPosition(statusBarShows);
+            } catch (RemoteException ex) {}
+        }
+    }
+
+    @Override
     public void toggleRecentApps() {
         if (mBar != null) {
             try {
@@ -404,6 +438,69 @@ public class StatusBarManagerService extends IStatusBarService.Stub
         if (mBar != null) {
             try {
                 mBar.setWindowState(window, state);
+            } catch (RemoteException ex) {}
+        }
+    }
+
+    @Override
+    public void setPieTriggerMask(int newMask, boolean lock) {
+        if (mBar != null) {
+            try {
+                mBar.setPieTriggerMask(newMask, lock);
+            } catch (RemoteException ex) {}
+        }
+    }
+
+    @Override
+    public void setAutoRotate(boolean enabled) {
+        if (mBar != null) {
+            try {
+                mBar.setAutoRotate(enabled);
+            } catch (RemoteException ex) {}
+        }
+    }
+
+    @Override
+    public void toggleNotificationShade() {
+        if (mBar != null) {
+            try {
+                mBar.toggleNotificationShade();
+            } catch (RemoteException ex) {}
+        }
+    }
+
+    @Override
+    public void toggleQSShade() {
+        if (mBar != null) {
+            try {
+                mBar.toggleQSShade();
+            } catch (RemoteException ex) {}
+        }
+    }
+
+    @Override
+    public void toggleScreenshot() {
+        if (mBar != null) {
+           try {
+                mBar.toggleScreenshot();
+            } catch (RemoteException ex) {}
+        }
+    }
+
+    @Override
+    public void toggleLastApp() {
+        if (mBar != null) {
+            try {
+                mBar.toggleLastApp();
+            } catch (RemoteException ex) {}
+        }
+    }
+
+    @Override
+    public void toggleKillApp() {
+        if (mBar != null) {
+            try {
+                mBar.toggleKillApp();
             } catch (RemoteException ex) {}
         }
     }

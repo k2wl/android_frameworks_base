@@ -5193,6 +5193,15 @@ public class WindowManagerService extends IWindowManager.Stub
     }
 
     @Override
+    public void showCustomIntentOnKeyguard(Intent intent) {
+        if (mContext.checkCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mPolicy.showCustomIntentOnKeyguard(intent);
+    }
+
+    @Override
     public void dismissKeyguard() {
         if (mContext.checkCallingOrSelfPermission(android.Manifest.permission.DISABLE_KEYGUARD)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -5360,6 +5369,12 @@ public class WindowManagerService extends IWindowManager.Stub
     public void reboot() {
         ShutdownThread.reboot(getUiContext(), null, true);
     }
+
+    // Called by window manager policy.  Not exposed externally.
+    @Override
+    public void rebootTile() {
+        ShutdownThread.reboot(mContext, null, true);
+    } 
 
     public void setCurrentUser(final int newUserId) {
         synchronized (mWindowMap) {
@@ -10373,11 +10388,6 @@ public class WindowManagerService extends IWindowManager.Stub
     }
 
     @Override
-    public boolean needsNavigationBar() {
-        return mPolicy.needsNavigationBar();
-    }
-
-    @Override
     public boolean hasMenuKeyEnabled() {
         return mPolicy.hasMenuKeyEnabled();
     }
@@ -11064,8 +11074,27 @@ public class WindowManagerService extends IWindowManager.Stub
         return mWindowMap;
     }
 
+    /* @hide */
+    @Override
+    public void toggleGlobalMenu() {
+        mPolicy.toggleGlobalMenu();
+    }
+
+    /* @hide */
+    @Override
+    public void toggleStatusBar() {
+        mPolicy.toggleStatusBar();
+    }
+
     @Override
     public void addSystemUIVisibilityFlag(int flag) {
         mLastStatusBarVisibility |= flag;
     }
+
+    /* @hide */
+    @Override
+    public int getSystemUIVisibility() {
+        return mLastStatusBarVisibility;
+    }
+
 }
