@@ -8938,6 +8938,12 @@ public final class Settings {
          */
         public static final String LOCKSCREEN_WEATHER = "lockscreen_weather";
 
+        /**
+         * Disable FC Notifications
+         * @hide
+         */
+        public static final String DISABLE_FC_NOTIFICATIONS = "disable_fc_notifications";
+
     }
 
     /**
