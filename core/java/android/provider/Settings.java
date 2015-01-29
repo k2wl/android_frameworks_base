@@ -8950,6 +8950,12 @@ public final class Settings {
          */
         public static final String DISABLE_FC_NOTIFICATIONS = "disable_fc_notifications";
 
+        /** Whether to collapse panel when quick settings tile is pressed.
+         *
+         * @hide
+         */
+        public static final String QUICK_SETTINGS_COLLAPSE_PANEL = "quick_settings_collapse_panel";
+
     }
 
     /**
