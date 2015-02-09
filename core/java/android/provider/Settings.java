@@ -3466,12 +3466,6 @@ public final class Settings {
         public static final String RECENTS_SHOW_HIDE_SEARCH_BAR = "recents_show_hide_search_bar";
 
         /**
-         * Hide notification instead of remove when swiping headsup
-         * @hide
-         */
-        public static final String HEADS_UP_DISMISS_ON_REMOVE = "heads_up_swipe_action";
-
-        /**
          * Display style of the status bar battery information
          * 0: Display the battery an icon in portrait mode
          * 2: Display the battery as a circle
@@ -3503,6 +3497,18 @@ public final class Settings {
          * @hide
          */
         public static final String STATUS_BAR_SHOW_WEATHER = "status_bar_show_weather";
+
+        /**
+         * Hide notification instead of remove when swiping headsup
+         * @hide
+         */
+        public static final String HEADS_UP_DISMISS_ON_REMOVE = "heads_up_swipe_action";
+
+        /**
+         * Hide notification 1 second after touching outside
+         * @hide
+         */
+        public static final String HEADS_UP_TOUCH_OUTSIDE = "heads_up_touch_outside";
 
         /**
          * show clear all recents button
