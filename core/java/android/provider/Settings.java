@@ -3465,11 +3465,10 @@ public final class Settings {
          */
         public static final String RECENTS_SHOW_HIDE_SEARCH_BAR = "recents_show_hide_search_bar";
 
-
         /**
-        * Hide notification instead of remove when swiping headsup
-        * @hide
-        */
+         * Hide notification instead of remove when swiping headsup
+         * @hide
+         */
         public static final String HEADS_UP_DISMISS_ON_REMOVE = "heads_up_swipe_action";
 
         /**
