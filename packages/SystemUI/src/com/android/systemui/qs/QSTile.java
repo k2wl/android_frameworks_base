@@ -104,8 +104,8 @@ public abstract class QSTile<TState extends State> implements Listenable {
     }
 
     public boolean isQsCollapsePanelEnabled() {
-        return (Settings.CMREMIX.getInt(mContext.getContentResolver(),
-                Settings.CMREMIX.QUICK_SETTINGS_COLLAPSE_PANEL, 1) == 1);
+        return (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.QUICK_SETTINGS_COLLAPSE_PANEL, 1) == 1);
     }
 
     public void qsCollapsePanel() {

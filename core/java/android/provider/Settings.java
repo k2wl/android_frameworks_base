@@ -3677,6 +3677,12 @@ public final class Settings {
          */
         public static final String QUICK_SETTINGS_TILES_VIBRATE = "quick_settings_vibrate";
 
+        /** Whether to collapse panel when quick settings tile is pressed.
+         *
+         * @hide
+         */
+        public static final String QUICK_SETTINGS_COLLAPSE_PANEL = "quick_settings_collapse_panel";
+
         /**
          * Heads Up Notifications
          *
@@ -9088,12 +9094,6 @@ public final class Settings {
          * @hide
          */
         public static final String DISABLE_FC_NOTIFICATIONS = "disable_fc_notifications";
-
-        /** Whether to collapse panel when quick settings tile is pressed.
-         *
-         * @hide
-         */
-        public static final String QUICK_SETTINGS_COLLAPSE_PANEL = "quick_settings_collapse_panel";
 
         /**
          * Disable ads (HFM)
