@@ -3671,6 +3671,12 @@ public final class Settings {
          */
         public static final String T9_SEARCH_INPUT_LOCALE = "t9_search_input_locale";
 
+        /** Whether to vibrate when quick settings tile is pressed.
+         *
+         * @hide
+         */
+        public static final String QUICK_SETTINGS_TILES_VIBRATE = "quick_settings_vibrate";
+
         /**
          * Heads Up Notifications
          *
@@ -9037,12 +9043,6 @@ public final class Settings {
          * @hide
          */
         public static final String STATUSBAR_CLOCK_FONT_STYLE = "statusbar_clock_font_style";
-
-        /** Whether to vibrate when quick settings tile is pressed.
-         *
-         * @hide
-         */
-        public static final String QUICK_SETTINGS_TILES_VIBRATE = "quick_settings_vibrate";
 
         /**
          * Alternative recent apps integration using OmniSwitch
