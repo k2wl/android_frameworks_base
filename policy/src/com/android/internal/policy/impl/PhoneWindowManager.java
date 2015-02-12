@@ -1847,7 +1847,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             setHasNavigationBar();
 
             mNavigationBarHeight =
-                    Settings.System.getIntForUser(mContext.getContentResolver(),
+                    Settings.CMREMIX.getIntForUser(mContext.getContentResolver(),
                             Settings.CMREMIX.NAVIGATION_BAR_HEIGHT, -2,
                             UserHandle.USER_CURRENT);
             if (mNavigationBarHeight == -2) {
