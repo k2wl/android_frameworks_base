@@ -810,14 +810,14 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.USE_EDGE_SERVICE_FOR_GESTURES), false, this,
                     UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.CMREMIX.getUriFor(
-                    Settings.CMREMIX.NAVIGATION_BAR_SHOW), false, this,
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.NAVIGATION_BAR_SHOW), false, this,
                     UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.CMREMIX.getUriFor(
-                    Settings.CMREMIX.NAVIGATION_BAR_HEIGHT), false, this,
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.NAVIGATION_BAR_HEIGHT), false, this,
                     UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.CMREMIX.getUriFor(
-                    Settings.CMREMIX.NAVIGATION_BAR_WIDTH), false, this,
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.NAVIGATION_BAR_WIDTH), false, this,
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.HOME_WAKE_SCREEN), false, this,
@@ -843,8 +843,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.ACCELEROMETER_ROTATION_ANGLES), false, this,
                     UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.CMREMIX.getUriFor(
-                    Settings.CMREMIX.ENABLE_HW_KEYS), false, this,
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.ENABLE_HW_KEYS), false, this,
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.Secure.getUriFor(
                     Settings.Secure.KILL_APP_LONGPRESS_TIMEOUT), false, this,
@@ -1717,9 +1717,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private void setHasNavigationBar() {
         final boolean showByDefault = mContext.getResources().getBoolean(
                 com.android.internal.R.bool.config_showNavigationBar);
-        final int hasNavigationBar = Settings.CMREMIX.getIntForUser(
+        final int hasNavigationBar = Settings.System.getIntForUser(
                 mContext.getContentResolver(),
-                Settings.CMREMIX.NAVIGATION_BAR_SHOW, -1,
+                Settings.System.NAVIGATION_BAR_SHOW, -1,
                 UserHandle.USER_CURRENT);
 
         // Allow a system property to override this if the provider value was never set.
@@ -1855,8 +1855,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             setHasNavigationBar();
 
             mNavigationBarHeight =
-                    Settings.CMREMIX.getIntForUser(mContext.getContentResolver(),
-                            Settings.CMREMIX.NAVIGATION_BAR_HEIGHT, -2,
+                    Settings.System.getIntForUser(mContext.getContentResolver(),
+                            Settings.System.NAVIGATION_BAR_HEIGHT, -2,
                             UserHandle.USER_CURRENT);
             if (mNavigationBarHeight == -2) {
                 mNavigationBarHeight = mContext.getResources().getDimensionPixelSize(
@@ -1867,8 +1867,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             }
 
             mNavigationBarWidth =
-                    Settings.CMREMIX.getIntForUser(mContext.getContentResolver(),
-                            Settings.CMREMIX.NAVIGATION_BAR_WIDTH, -2,
+                    Settings.System.getIntForUser(mContext.getContentResolver(),
+                            Settings.System.NAVIGATION_BAR_WIDTH, -2,
                             UserHandle.USER_CURRENT);
             if (mNavigationBarWidth == -2) {
                 mNavigationBarWidth = mContext.getResources().getDimensionPixelSize(
@@ -7038,9 +7038,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     }
 
     public boolean hasHwKeysEnabled() {
-        return mHasHwKeysEnabled = Settings.CMREMIX.getIntForUser(
+        return mHasHwKeysEnabled = Settings.System.getIntForUser(
                 mContext.getContentResolver(),
-                    Settings.CMREMIX.ENABLE_HW_KEYS, 1, UserHandle.USER_CURRENT) == 1;
+                    Settings.System.ENABLE_HW_KEYS, 1, UserHandle.USER_CURRENT) == 1;
     }
 
     // Use this instead of checking config_showNavigationBar so that it can be consistently

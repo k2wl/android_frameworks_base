@@ -751,11 +751,11 @@ public class ViewConfiguration {
      */
     public boolean hasPermanentMenuKey() {
         // Check if navbar is on to set overflow menu button
-        boolean mHasNavigationBar = Settings.CMREMIX.getInt(mContext.getContentResolver(),
-                    Settings.CMREMIX.NAVIGATION_BAR_SHOW, 0) == 1;
+        boolean mHasNavigationBar = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.NAVIGATION_BAR_SHOW, 0) == 1;
         // Check if hw keys are on to set overflow menu button
-        boolean mHasHwKeysEnabled = Settings.CMREMIX.getInt(mContext.getContentResolver(),
-                    Settings.CMREMIX.ENABLE_HW_KEYS, 0) == 1;
+        boolean mHasHwKeysEnabled = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.ENABLE_HW_KEYS, 0) == 1;
 
         IWindowManager wm = WindowManagerGlobal.getWindowManagerService();
         // Report no menu key if device has soft buttons
