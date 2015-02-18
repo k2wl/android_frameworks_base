@@ -2133,4 +2133,8 @@
     <!-- Doze: force using accelerometer as pick up sensor -->
     <bool name="config_dozeUseAccelerometer">false</bool>
 
+    <!-- Default values for display color temperature -->
+    <string name="config_dayColorTemperature">6500</string>
+    <string name="config_nightColorTemperature">4500</string>
+    <string name="config_outdoorAmbientLux">9000</string>
 </resources>
