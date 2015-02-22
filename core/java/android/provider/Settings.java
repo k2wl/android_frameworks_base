@@ -3571,6 +3571,12 @@ public final class Settings {
         public static final String SAFE_HEADSET_VOLUME = "safe_headset_volume";
 
         /**
+         * Timeout for volume panel
+         * @hide
+         */
+        public static final String VOLUME_PANEL_TIMEOUT = "volume_panel_timeout";
+
+        /**
          * Volume key controls ringtone or media sound stream
          *
          * @hide
