@@ -2258,6 +2258,12 @@ public final class Settings {
         @Deprecated
         public static final String QS_USE_MAIN_TILES = Secure.QS_USE_MAIN_TILES;
 
+        /** Whether to allow one finger quick settings expansion on the right side of the statusbar.
+         *
+         * @hide
+         */
+        public static final String STATUS_BAR_QUICK_QS_PULLDOWN = "status_bar_quick_qs_pulldown";
+
         /**
          * Control whether the process CPU usage meter should be shown.
          *
@@ -9029,12 +9035,6 @@ public final class Settings {
          * @hide
          */
         public static final String FORMAL_TEXT_INPUT = "formal_text_input";
-
-        /**
-         * Whether to allow one finger quick settings expansion on the right side of the statusbar.
-         * @hide
-         */
-        public static final String STATUS_BAR_QUICK_QS_PULLDOWN = "status_bar_quick_qs_pulldown";
 
         /**
          * Quick Settings Smart Pulldown
