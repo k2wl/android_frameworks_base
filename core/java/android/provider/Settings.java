@@ -9312,6 +9312,24 @@ public final class Settings {
          */
         public static final String STATUS_BAR_SHOW_NETWORK_ACTIVITY = "status_bar_show_network_activity";
 
+        /**
+         * Color of the quick settings panel background
+         * @hide
+         */
+        public static final String QS_BACKGROUND_COLOR = "qs_background_color";
+
+        /**
+         * Color of the quick settings icons
+         * @hide
+         */
+        public static final String QS_ICON_COLOR = "qs_icons_color";
+
+        /**
+         * Color of the quick settings text
+         * @hide
+         */
+        public static final String QS_TEXT_COLOR = "qs_text_color";
+
     }
 
     /**
