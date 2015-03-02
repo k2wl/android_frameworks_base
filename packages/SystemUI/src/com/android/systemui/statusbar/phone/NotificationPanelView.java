@@ -191,6 +191,7 @@ public class NotificationPanelView extends PanelView implements
     private GestureDetector mDoubleTapGesture;
 
     private int mQSBackgroundColor;
+    private boolean mQSShadeTransparency = false;
 
     public NotificationPanelView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -1952,6 +1953,9 @@ public class NotificationPanelView extends PanelView implements
             resolver.registerContentObserver(Settings.CMREMIX.getUriFor(
                     Settings.CMREMIX.QS_TEXT_COLOR),
                     false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.CMREMIX.getUriFor(
+                    Settings.CMREMIX.QS_TRANSPARENT_SHADE),
+                    false, this, UserHandle.USER_ALL);
             update();
         }
 
@@ -1970,9 +1974,13 @@ public class NotificationPanelView extends PanelView implements
         public void onChange(boolean selfChange, Uri uri) {
             ContentResolver resolver = mContext.getContentResolver();
             if (uri.equals(Settings.CMREMIX.getUriFor(
-                    Settings.CMREMIX.QS_BACKGROUND_COLOR))) {
+                    Settings.CMREMIX.QS_BACKGROUND_COLOR))
+                || uri.equals(Settings.CMREMIX.getUriFor(
+                    Settings.CMREMIX.QS_TRANSPARENT_SHADE))) {
                 mQSBackgroundColor = Settings.CMREMIX.getInt(
                         resolver, Settings.CMREMIX.QS_BACKGROUND_COLOR, 0xff263238);
+                mQSShadeTransparency = Settings.CMREMIX.getInt(
+                        resolver, Settings.CMREMIX.QS_TRANSPARENT_SHADE, 0) == 1;
                 setQSBackgroundColor();
             } else if (uri.equals(Settings.CMREMIX.getUriFor(
                     Settings.CMREMIX.QS_ICON_COLOR))
@@ -1996,8 +2004,10 @@ public class NotificationPanelView extends PanelView implements
             mQsSmartPullDown = Settings.CMREMIX.getIntForUser(
                     resolver, Settings.CMREMIX.QS_SMART_PULLDOWN, 0,
                     UserHandle.USER_CURRENT);
-			mQSBackgroundColor = Settings.CMREMIX.getInt(
+            mQSBackgroundColor = Settings.CMREMIX.getInt(
                     resolver, Settings.CMREMIX.QS_BACKGROUND_COLOR, 0xff263238);
+            mQSShadeTransparency = Settings.CMREMIX.getInt(
+                    resolver, Settings.CMREMIX.QS_TRANSPARENT_SHADE, 0) == 1;
             setQSBackgroundColor();
             setQSColors();
         }
@@ -2007,9 +2017,16 @@ public class NotificationPanelView extends PanelView implements
         ContentResolver resolver = mContext.getContentResolver();
         mQSBackgroundColor = Settings.CMREMIX.getInt(
                 resolver, Settings.CMREMIX.QS_BACKGROUND_COLOR, 0xff263238);
+        mQSShadeTransparency = Settings.CMREMIX.getInt(mContext.getContentResolver(),
+            Settings.CMREMIX.QS_TRANSPARENT_SHADE, 0) == 1;
         if (mQsContainer != null) {
-            mQsContainer.getBackground().setColorFilter(
-                    mQSBackgroundColor, Mode.MULTIPLY);
+            if (mQSShadeTransparency) {
+                mQsContainer.getBackground().setColorFilter(
+                        mQSBackgroundColor, Mode.MULTIPLY);
+            } else {
+                mQsContainer.getBackground().setColorFilter(
+                        mQSBackgroundColor, Mode.SRC_OVER);
+            }
         }
         if (mQsPanel != null) {
             mQsPanel.setDetailBackgroundColor(mQSBackgroundColor);
