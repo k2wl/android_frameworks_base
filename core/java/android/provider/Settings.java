@@ -3489,7 +3489,7 @@ public final class Settings {
          */
         public static final String STATUSBAR_CLOCK_DATE_FORMAT = "statusbar_clock_date_format";
 
-         /**
+        /**
          * Recents Show/Hide Search Bar
          * @hide
          */
@@ -9335,6 +9335,12 @@ public final class Settings {
          * @hide
          */
         public static final String QS_TRANSPARENT_SHADE = "qs_transparent_shade";
+
+        /**
+         * Display second in the Clock
+         * @hide
+         */
+        public static final String CLOCK_USE_SECOND = "clock_use_second";
 
     }
 
