@@ -9461,6 +9461,12 @@ public final class Settings {
         public static final String QS_TRANSPARENT_SHADE = "qs_transparent_shade";
 
         /**
+         * Transparent shade
+         * @hide
+         */
+        public static final String QS_COLOR_SWITCH = "qs_color_switch";
+
+        /**
          * Display second in the Clock
          * @hide
          */
