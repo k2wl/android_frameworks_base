@@ -148,7 +148,6 @@ import com.android.systemui.keyguard.KeyguardViewMediator;
 import com.android.systemui.qs.QSPanel;
 import com.android.systemui.statusbar.ActivatableNotificationView;
 import com.android.systemui.statusbar.BackDropView;
-import com.android.systemui.statusbar.AppSidebar;
 import com.android.systemui.statusbar.BaseStatusBar;
 import com.android.systemui.statusbar.CommandQueue;
 import com.android.systemui.statusbar.DismissView;
@@ -485,9 +484,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                     false, this, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.CMREMIX.getUriFor(
                     Settings.CMREMIX.STATUS_BAR_GREETING_TIMEOUT),
-                    false, this, UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.APP_SIDEBAR_POSITION),
                     false, this, UserHandle.USER_ALL);
             update();
         }
@@ -3706,24 +3702,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                 stopNotificationLogging();
                 resetUserExpandedStates();
             }
-            else if (Intent.ACTION_CONFIGURATION_CHANGED.equals(action)) {
-                Configuration config = mContext.getResources().getConfiguration();
-                try {
-                    // position app sidebar on left if in landscape orientation and device has a navbar
-                    if (mWindowManagerService.hasNavigationBar() &&
-                            config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                        mWindowManager.updateViewLayout(mAppSidebar,
-                                getAppSidebarLayoutParams(AppSidebar.SIDEBAR_POSITION_LEFT));
-                        mHandler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                mAppSidebar.setPosition(AppSidebar.SIDEBAR_POSITION_LEFT);
-                            }
-                        }, 500);
-                    }
-                } catch (RemoteException e) {
-                }
-            }
             else if (Intent.ACTION_SCREEN_ON.equals(action)) {
                 mScreenOn = true;
                 // work around problem where mDisplay.getRotation() is not stable while screen is off (bug 7086018)
@@ -3874,17 +3852,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             mHeadsUpNotificationView.dismiss();
         }
      }
-
-    private void updateSettings() {
-        ContentResolver resolver = mContext.getContentResolver();
-        int sidebarPosition = Settings.System.getInt(resolver,
-                Settings.System.APP_SIDEBAR_POSITION, 
-                AppSidebar.SIDEBAR_POSITION_LEFT);
-        if (sidebarPosition != mSidebarPosition) {
-            mSidebarPosition = sidebarPosition;
-            mWindowManager.updateViewLayout(mAppSidebar, getAppSidebarLayoutParams(sidebarPosition));
-        }
-    }
 
     private static void copyNotifications(ArrayList<Pair<String, StatusBarNotification>> dest,
             NotificationData source) {
