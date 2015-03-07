@@ -3764,6 +3764,13 @@ public final class Settings {
         public static final String DISPLAY_COLOR_ADJUSTMENT = "display_color_adjustment";
 
         /**
+         * Config for advanced power menu
+         *
+         * @hide
+         */
+        public static final String QUICK_TILE_CONFIG = "quick_tile_config";
+
+        /**
          * Did we tell about how they can stop breaking their eyes?
          * @hide
          */
