@@ -9430,14 +9430,6 @@ public final class Settings {
         public static final String DIALER_WIDGET_HIDE = "dialer_widget_hide";
 
         /**
-         * Allows to disable weather in locskcreen
-         * 1 = use system default (show)
-         * 0 = hide Weather
-         * @hide
-         */
-        public static final String LOCKSCREEN_WEATHER = "lockscreen_weather";
-
-        /**
          * Disable FC Notifications
          * @hide
          */
